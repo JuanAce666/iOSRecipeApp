@@ -51,12 +51,13 @@ class AuthViewModel: ObservableObject {
     }
     
     func signOut() {
-        do{
+        do {
             try Auth.auth().signOut()
             self.userSession = nil
             self.currentUser = nil
-        }catch {
-            print("DEBUG: Failed to sign out with the error \(error.localizedDescription)")
+            print("DEBUG: Successfully signed out")
+        } catch let error as NSError {
+            print("DEBUG: Failed to sign out with error \(error.localizedDescription)")
         }
     }
     
@@ -71,11 +72,12 @@ class AuthViewModel: ObservableObject {
             try Auth.auth().signOut()
             self.userSession = nil
             self.currentUser = nil
-            print("DEBUG account delete successful")
-        } catch {
+            print("DEBUG: Account delete successful")
+        } catch let error as NSError {
             print("DEBUG: Error with delete account: \(error.localizedDescription)")
         }
     }
+
 
     
    /* func deleteAccount() async {
@@ -103,16 +105,21 @@ class AuthViewModel: ObservableObject {
 
 // MARK: - SignIn sso
 extension AuthViewModel {
-    
-    
     func signInWithGoogle(tokens: GoogleSignInresultModel) async throws {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
+        print("DEBUG: Google ID Token: \(tokens.idToken)")
+        print("DEBUG: Google Access Token: \(tokens.accessToken)")
         try await signIn(credential: credential)
     }
     
     func signIn(credential: AuthCredential) async throws {
-        let authDataResult = try await Auth.auth().signIn(with: credential)
-        self.userSession = authDataResult.user
-        await fetchUser()
+        do {
+            let authDataResult = try await Auth.auth().signIn(with: credential)
+            self.userSession = authDataResult.user
+            print("DEBUG: Firebase User: \(authDataResult.user.uid)")
+            await fetchUser()
+        } catch {
+            print("DEBUG: Error signing in with Google: \(error.localizedDescription)")
+        }
     }
 }

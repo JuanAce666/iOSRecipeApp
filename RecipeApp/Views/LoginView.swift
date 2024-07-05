@@ -21,12 +21,14 @@ struct GoogleSignInresultModel {
 final class AuthenticationLoginView: ObservableObject {
     func signInGoogle() async throws {
         guard let topVC = Utilities.shared.getTopViewController() else  {
+            print("DEBUG: Top view controller not found")
             throw URLError(.cannotFindHost)
         }
         
         let gidSignInResults = try await GIDSignIn.sharedInstance.signIn(withPresenting: topVC)
         
         guard let idToken = gidSignInResults.user.idToken?.tokenString else {
+            print("DEBUG: No ID token from Google Sign-In")
             throw URLError(.badServerResponse)
         }
         
@@ -34,6 +36,13 @@ final class AuthenticationLoginView: ObservableObject {
     
         let tokens = GoogleSignInresultModel(idToken: idToken, accessToken: accessToken)
         try await AuthViewModel.shared.signInWithGoogle(tokens: tokens)
+        
+        // Verificar si la sesión se establece correctamente
+        if AuthViewModel.shared.userSession != nil {
+            print("DEBUG: Google Sign-In successful")
+        } else {
+            print("DEBUG: Google Sign-In failed")
+        }
     }
 }
 
